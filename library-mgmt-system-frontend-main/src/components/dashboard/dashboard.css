@@ -1,0 +1,19 @@
+.nav-link{
+  text-decoration: none;
+  color: black;
+}
+
+.nav-list{
+  padding: 50px;
+}
+
+.main{
+  display: flex;
+  align-items: flex-start;
+}
+
+@media screen and (max-width: 600px) {
+  .main{
+    flex-direction: column;
+  }
+}

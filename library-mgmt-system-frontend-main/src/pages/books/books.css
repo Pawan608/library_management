@@ -1,0 +1,14 @@
+body{
+    padding: 100px;
+}
+
+.heading{
+    display: flex;
+    justify-content: space-between;
+}
+
+@media screen and (max-width: 600px) {
+    body{
+      padding: 0;
+    }
+  }
