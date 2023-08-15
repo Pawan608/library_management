@@ -2,37 +2,36 @@ import React from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import { TextField, Button } from "@mui/material";
 // import { axiosPost } from "../axios/axiosPost";
-import { useSnabarStore } from "../store/zustandstore";
+import { useBookData, useSnabarStore } from "../store/zustandstore";
 import { axiosPatch } from "../axios/axiosPatch";
 import { useCSRFstore } from "../store/zustandstore";
 import IsuueBookDialog from "../components/dialog-form/issueBookDialog";
-const ExistingBooksTable = ({ setBookList, bookList }) => {
+const ExistingBooksTable = () => {
   // const rows = [
   //   { title: "Harry Potter", author: "J.K. Rowling", id: "156118961551" },
   //   { title: "War and Peace", author: "Leo tolestoy", id: "256118961551" },
   // ];
-  // console.log("booklist", bookList);
+  // console.log("bookData", bookList);
+  const { bookData } = useBookData();
   const [rows, setRows] = React.useState([]);
   const [openIssueDialog, setOpenIssueDialog] = React.useState(false);
   const [index, setIndex] = React.useState(-1);
   const { setSuccess, setError } = useSnabarStore();
   const { csrfValue } = useCSRFstore();
   React.useEffect(() => {
-    if (bookList.length) {
-      setRows(
-        bookList.map((book, index) => {
-          return {
-            title: book.title || "No Data",
-            author: book.authors,
-            id: book.isbn,
-            rent: book.price_per_day,
-            stock: book.stock,
-            index: index,
-          };
-        })
-      );
-    }
-  }, [bookList]);
+    setRows(
+      bookData.map((book, index) => {
+        return {
+          title: book.title || "No Data",
+          author: book.authors,
+          id: book.isbn,
+          rent: book.price_per_day,
+          stock: book.stock,
+          index: index,
+        };
+      })
+    );
+  }, [bookData]);
   console.log("rowsss", rows);
   const handleChangeRent = async (isbn, rent) => {
     // console.log("rent", { rent });
@@ -124,8 +123,6 @@ const ExistingBooksTable = ({ setBookList, bookList }) => {
       </div>
       <IsuueBookDialog
         setOpen={setOpenIssueDialog}
-        setBookList={setBookList}
-        bookList={bookList}
         open={openIssueDialog}
         index={index}
       />

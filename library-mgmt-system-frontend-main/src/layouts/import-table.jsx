@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 import { DataGrid } from "@mui/x-data-grid";
 import TextField from "@mui/material/TextField";
-import { useBookImport } from "../store/zustandstore";
+import { useBookData, useBookImport } from "../store/zustandstore";
 import Button from "@mui/material/Button";
 import { axiosPost } from "../axios/axiosPost";
 import { useCSRFstore } from "../store/zustandstore";
 import { useSnabarStore } from "../store/zustandstore";
+import { Search } from "@mui/icons-material";
 export default function DataTable({
   triggerCall,
   setTriggercall,
   setPage,
   page,
   handleClose,
+  changeSearch,
 }) {
-  const { bookList } = useBookImport();
+  const { bookList, loading } = useBookImport();
+  const { setNewbookData } = useBookData();
   // console.log("book lisjahbsj", bookList);
   const [data, setData] = useState([]);
   const [paginationModel, setPaginationModel] = React.useState({
@@ -28,7 +31,7 @@ export default function DataTable({
   //   return prev;
   // });
   const handleChangePage = (event) => {
-    console.log(event);
+    // console.log("page chnage", event);
 
     setPaginationModel((prev) => {
       return { ...event };
@@ -39,11 +42,15 @@ export default function DataTable({
       setPage((page) => page + 1);
     }
   };
+  console.log("pagination", paginationModel);
+  React.useEffect(() => {
+    setData([]);
+  }, [changeSearch]);
   React.useEffect(() => {
     setData([
       ...data,
       ...bookList.map((book, index) => ({
-        id: index,
+        id: index + data.length,
         title: book.title,
         authors: book.authors,
         isbn: book.isbn,
@@ -69,7 +76,7 @@ export default function DataTable({
   const handleImport = async () => {
     const newData = rowSelectionModel.map((el) => {
       // if (!data[el].stock) return;
-      return { ...data[el] };
+      return { ...data[el], price_per_day: 20 };
     });
     // console.log("new Data", newData);
     console.log({
@@ -81,6 +88,7 @@ export default function DataTable({
       });
       if (response.status == "success") {
         setSuccess("Book successfully imported");
+        setNewbookData(response.data);
         handleClose();
       } else {
         setError(response.message);
@@ -117,25 +125,31 @@ export default function DataTable({
   return (
     <>
       <div style={{ width: "100%" }}>
-        <DataGrid
-          rows={data}
-          columns={columns}
-          // pageSize={1}
-          checkboxSelection
-          initialState={{
-            ...data.initialState,
-            pagination: { paginationModel: { pageSize: 10 } },
-          }}
-          // rowCount={""}
-          pageSizeOptions={[10]}
-          paginationModel={paginationModel}
-          onPaginationModelChange={(prev) => handleChangePage(prev)}
-          onRowSelectionModelChange={(newRowSelectionModel) => {
-            setRowSelectionModel(newRowSelectionModel);
-          }}
-          isRowSelectable={(params) => params.row.stock > 0}
-          rowSelectionModel={rowSelectionModel}
-        />
+        {data.length ? (
+          <DataGrid
+            rows={data}
+            columns={columns}
+            // pageSize={1}
+            checkboxSelection
+            initialState={{
+              ...data.initialState,
+              pagination: { paginationModel: { pageSize: 1 } },
+            }}
+            // rowCount={""}
+            pageSizeOptions={[10]}
+            paginationModel={paginationModel}
+            onPaginationModelChange={(prev) => handleChangePage(prev)}
+            onRowSelectionModelChange={(newRowSelectionModel) => {
+              setRowSelectionModel(newRowSelectionModel);
+            }}
+            isRowSelectable={(params) => params.row.stock > 0}
+            rowSelectionModel={rowSelectionModel}
+          />
+        ) : loading ? (
+          "Loading..."
+        ) : (
+          "No Book found"
+        )}
       </div>
       <Button
         variant={!rowSelectionModel.length ? "disabled" : "contained"}

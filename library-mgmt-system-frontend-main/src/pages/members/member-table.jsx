@@ -75,7 +75,7 @@ function Row(props) {
                         </TableCell>
                         <TableCell>{historyRow.isbn}</TableCell>
                         <TableCell align="left">
-                          {historyRow.returnDate || "Not Returned"}
+                          {historyRow.end_date || "Not Returned"}
                         </TableCell>
                         <TableCell align="left">
                           {historyRow.total_amount || 0}

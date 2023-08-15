@@ -35,35 +35,40 @@ export default function FormDialog() {
   const [triggerCall, setTriggercall] = React.useState(false);
   const [page, setPage] = React.useState(1);
   const [formData, setFormData] = React.useState("");
-  const { bookList, setBookList } = useBookImport();
-
-  const getbooks = async () => {
-    const url = `https://frappe.io/api/method/frappe-library?page=${page}&${
-      formData ? `${searchBy}=${formData.trim().split(" ").join("%20")}` : ""
-    }`;
+  const { bookList, setBookList, setBookImportLoading, loading } =
+    useBookImport();
+  const [changeSearch, setChangeSearch] = React.useState(true);
+  const getbooks = async (url_new = undefined) => {
+ setBookImportLoading(true);
+    const url =
+      url_new ||
+      `https://frappe.io/api/method/frappe-library?page=${page}&${
+        formData ? `${searchBy}=${formData.trim().split(" ").join("%20")}` : ""
+      }`;
     const response = await axiosPatch("library/books", csfrValue, { url });
-
+    // console.log("responseee", response);
     if (response.status == "success") {
       // console.log(response.status);
       setBookList(response.data);
     }
-    // console.log("all books", response);
+    setBookImportLoading(false);
   };
   React.useEffect(() => {
     getbooks();
   }, [triggerCall]);
   const handleSearch = () => {
+    setChangeSearch((el) => !el);
     setPage(1);
-    setBookList([]);
     getbooks();
   };
   // functions handling opening and closing of dialog box
   const handleClickOpen = () => {
     setOpen(true);
   };
-
+  // console.log("all books", bookList);
   const handleClose = () => {
     setSearchBy("");
+    // setBookList([]);
     setPage(1);
     setFormData("");
     setOpen(false);
@@ -92,7 +97,7 @@ export default function FormDialog() {
         <DialogContent>
           <DialogContentText>
             To Add book to the library please enter the number of books to be
-            imported, and kindly select the list of books to be imported
+            imported, and kindly select the checkbox
           </DialogContentText>
           <Grid
             container
@@ -102,38 +107,65 @@ export default function FormDialog() {
           >
             <BasicSelect searchBy={searchBy} setSearchBy={setSearchBy} />
             <Grid item xs={6} sx={{ minWidth: 120 }}>
-              {searchBy !== "" && (
-                <FormControl fullWidth>
-                  {/* <InputLabel id="demo-simple-select-label">Search By</InputLabel> */}
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="name"
-                    value={formData}
-                    label={searchBy}
-                    onChange={(event) => setFormData(event.target.value)}
-                    type="text"
-                    variant="outlined"
-                  />
-                </FormControl>
-              )}
+              <FormControl fullWidth>
+                {/* <InputLabel id="demo-simple-select-label">Search By</InputLabel> */}
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  id="name"
+                  value={formData}
+                  label={
+                    searchBy.slice(0, 1).toUpperCase() +
+                    searchBy.slice(1).toLowerCase()
+                  }
+                  onChange={(event) => setFormData(event.target.value)}
+                  type="text"
+                  variant="outlined"
+                  disabled={searchBy ? false : true}
+                />
+              </FormControl>
             </Grid>
-            <Grid item xs={3}>
-              {searchBy !== "" && (
-                <Button variant="filled" onClick={handleSearch}>
-                  Search
-                </Button>
-              )}
+            <Grid item xs={1} sx={{ mr: "20px" }}>
+              <Button
+                variant="filled"
+                onClick={handleSearch}
+                disabled={searchBy && formData ? false : true}
+              >
+                Search
+              </Button>
+            </Grid>
+            <Grid item xs={1}>
+              <Button
+                variant="contained"
+                sx={{ borderRadius: "25px" }}
+                onClick={() => {
+                  setSearchBy("");
+                  setFormData("");
+                  setChangeSearch((el) => !el);
+                  getbooks(
+                    `https://frappe.io/api/method/frappe-library?page=${page}`
+                  );
+                }}
+                // disabled={searchBy && formData ? false : true}
+              >
+                clear
+              </Button>
             </Grid>
           </Grid>
-          {bookList.length && (
+
+          {bookList.length  ? (
             <DataTable
               setPage={setPage}
               page={page}
               setTriggercall={setTriggercall}
               triggerCall={triggerCall}
               handleClose={handleClose}
+              changeSearch={changeSearch}
             />
+          ) : loading ? (
+            "Loading..."
+          ) : (
+            "No Book found"
           )}
         </DialogContent>
         <DialogActions></DialogActions>

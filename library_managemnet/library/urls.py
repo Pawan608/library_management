@@ -2,6 +2,7 @@ from django.urls import path
 from . import books
 from . import members
 from . import transaction
+from . import aggregation
 
 urlpatterns=[
     path("books/create",books.createBook),
@@ -19,4 +20,7 @@ urlpatterns=[
     path("transaction/return/<transactionID>",transaction.returnBook),
     path("transaction/list/issued",transaction.getIssuedBooks),
     path("transaction/list/returned",transaction.getReturnedBooks),
+
+    ######Run Aggregation
+    path("summary",aggregation.getSummary),
 ]

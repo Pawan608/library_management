@@ -27,9 +27,14 @@ const useSnabarStore = create((set) => ({
 
 const useBookImport = create((set) => ({
   bookList: [],
+  loading: true,
   setBookList: (data) =>
-    set(() => {
-      return { bookList: data };
+    set((state) => {
+      return { loading: state.loading, bookList: data };
+    }),
+  setBookImportLoading: (isloading) =>
+    set((state) => {
+      return { bookList: state.bookList, loading: isloading };
     }),
 }));
 
@@ -47,4 +52,43 @@ const useMemberStore = create((set) => ({
     }),
 }));
 
-export { useCSRFstore, useSnabarStore, useBookImport, useMemberStore };
+const useBookData = create((set) => ({
+  bookData: [],
+  setBookData: (data) =>
+    set((state) => {
+      return { bookData: data };
+    }),
+  setDecreaseBookStock: (index) =>
+    set((state) => {
+      state.bookData[index].stock = state.bookData[index].stock - 1;
+      return { bookData: [...state.bookData] };
+    }),
+  setNewbookData: (data) =>
+    set((state) => {
+      const index = [];
+      const repeatData = state.bookData.map((book) => {
+        // console.log("from Zustand data", data);
+        const repeatedObj = data.find((el, i) => {
+          if (el.isbn == book.isbn) {
+            index.push(i);
+          }
+          return el.isbn == book.isbn;
+        });
+        // console.log("from Zustand", repeatedObj, book);
+        if (repeatedObj) {
+          return { ...book, stock: repeatedObj.stock };
+        } else return book;
+      });
+      const newData = data.filter((el, i) => !index.includes(i));
+      console.log("from zust", newData);
+      return { bookData: [...newData, ...repeatData] };
+    }),
+}));
+
+export {
+  useCSRFstore,
+  useSnabarStore,
+  useBookImport,
+  useMemberStore,
+  useBookData,
+};

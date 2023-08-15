@@ -7,16 +7,11 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import { axiosPost } from "../../axios/axiosPost";
-import { useCSRFstore } from "../../store/zustandstore";
+import { useBookData, useCSRFstore } from "../../store/zustandstore";
 import { useSnabarStore } from "../../store/zustandstore";
-export default function IsuueBookDialog({
-  setOpen,
-  open,
-  index,
-  setBookList,
-  bookList,
-}) {
+export default function IsuueBookDialog({ setOpen, open, index }) {
   const { csfrValue } = useCSRFstore();
+  const { bookData, setDecreaseBookStock } = useBookData();
   const [memberID, setMemberID] = React.useState("");
   const { setSuccess, setError } = useSnabarStore();
   console.log(memberID);
@@ -26,19 +21,16 @@ export default function IsuueBookDialog({
   };
   console.log(
     "new request",
-    `library/transaction/create/${bookList[index]?.isbn}/${memberID.trim(" ")}`
+    `library/transaction/create/${bookData[index]?.isbn}/${memberID.trim(" ")}`
   );
   const handleSubmit = async () => {
     const response = await axiosPost(
-      `library/transaction/create/${bookList[index]?.isbn}/${memberID}`,
+      `library/transaction/create/${bookData[index]?.isbn}/${memberID}`,
       csfrValue,
       {}
     );
     if (response.status == "success") {
-      setBookList((prev) => {
-        prev[index].stock = prev[index].stock - 1;
-        return [...prev];
-      });
+      setDecreaseBookStock(index);
 
       handleClose();
       setSuccess("Book successfully uploadeded");
