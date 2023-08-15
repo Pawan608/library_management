@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import pprint
 from datetime import datetime
+import requests
 from django.forms.models import model_to_dict
 # Create your views here.
 
@@ -131,7 +132,7 @@ def addStock(request,isbn):
         book.stock=book.stock+stock
         book.save()
         book_dict = model_to_dict(book)
-        print("bookdict",book_dict)
+        # print("bookdict",book_dict)
         return JsonResponse({"message":"Stock successfully updated","status":"success","data":book_dict})
     except IntegrityError as e:
         error_message=str(e)
@@ -143,4 +144,36 @@ def addStock(request,isbn):
         response_data = {'message': 'An error occurred', 'error_message': str(e)}
         return JsonResponse(response_data, status=500) 
 
+@api_view(['PATCH'])
+def changeRent(request,isbn):
+    try:
+        # print("rentttttttttttttttt",request.data)
+        rent=request.data['rent']
+        book=Book.objects.get(isbn=isbn)
+        book.price_per_day=rent
+        book.save()
+        book_dict = model_to_dict(book)
+        
+        # print("bookdict",book_dict)
+        return JsonResponse({"message":"Rent successfully updated","status":"success","data":book_dict})
+    except IntegrityError as e:
+        error_message=str(e)
+        return JsonResponse({"message":"Integrity error",'error_message':error_message},status=404)
+    except ValidationError as e:
+        response_data = {'message': 'Validation error', 'error_message': str(e)}
+        return JsonResponse(response_data, status=400)  
+    except Exception as e:
+        response_data = {'message': 'An error occurred', 'error_message': str(e)}
+        return JsonResponse(response_data, status=500) 
          
+@api_view(['PATCH'])
+def getAllBooks(request):
+#  url="https://frappe.io/api/method/frappe-library?page=1&author=Larry%20J.%20Koenig"
+ url=request.data['url']
+ response = requests.get(url)
+
+ if response.status_code == 200:
+        data = response.json()
+        return JsonResponse({"data":data["message"],"status":"success"})
+ else:
+        return JsonResponse({'error': 'Failed to fetch data'}, status=response.status_code)

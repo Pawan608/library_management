@@ -10,9 +10,13 @@ import AddIcon from "@mui/icons-material/Add";
 import BasicSelect from "../../layouts/select";
 import { FormControl, Grid } from "@mui/material";
 import styled from "styled-components";
-import { InputLabel } from "@mui/material";
+import axios from "axios";
+// import { InputLabel } from "@mui/material";
 import DataTable from "../../layouts/import-table";
-
+import { axiosFetch } from "../../axios/axiosFetch";
+import { axiosPatch } from "../../axios/axiosPatch";
+import { useCSRFstore } from "../../store/zustandstore";
+import { useBookImport } from "../../store/zustandstore";
 const StyledDialog = styled(Dialog)`
   .MuiDialog-paper {
     width: 800px; /* Adjust the width as needed */
@@ -25,31 +29,46 @@ export default function FormDialog() {
 
   // stores search by value for book
   const [searchBy, setSearchBy] = React.useState("");
-
+  const { csfrValue } = useCSRFstore();
   //console.log(searchBy);
   // stores form data for book search
+  const [triggerCall, setTriggercall] = React.useState(false);
+  const [page, setPage] = React.useState(1);
   const [formData, setFormData] = React.useState("");
+  const { bookList, setBookList } = useBookImport();
 
+  const getbooks = async () => {
+    const url = `https://frappe.io/api/method/frappe-library?page=${page}&${
+      formData ? `${searchBy}=${formData.trim().split(" ").join("%20")}` : ""
+    }`;
+    const response = await axiosPatch("library/books", csfrValue, { url });
+
+    if (response.status == "success") {
+      // console.log(response.status);
+      setBookList(response.data);
+    }
+    // console.log("all books", response);
+  };
+  React.useEffect(() => {
+    getbooks();
+  }, [triggerCall]);
+  const handleSearch = () => {
+    setPage(1);
+    setBookList([]);
+    getbooks();
+  };
   // functions handling opening and closing of dialog box
   const handleClickOpen = () => {
     setOpen(true);
   };
 
   const handleClose = () => {
+    setSearchBy("");
+    setPage(1);
+    setFormData("");
     setOpen(false);
   };
-
-  // store books returned by API
-  const [books, setBooks] = React.useState({
-    num: 0,
-    array: [],
-  });
-
   // function to handle search
-  const handleSearch = () => {
-    // call frappe API to get books * while calling API use searchBy value as "key" and formData value as "data" *
-    // add all the data in "books.array" and update "books.num"
-  };
 
   // function to handle import of books to database using APIs
   const handleImport = () => {
@@ -72,10 +91,15 @@ export default function FormDialog() {
         <DialogTitle>Add Book</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            To Add book to the library please enter either book title, author
-            name or ISBN
+            To Add book to the library please enter the number of books to be
+            imported, and kindly select the list of books to be imported
           </DialogContentText>
-          <Grid container alignItems={"center"} spacing={2} sx={{ mt: "10px", marginBottom: "15px" }}>
+          <Grid
+            container
+            alignItems={"center"}
+            spacing={2}
+            sx={{ mt: "10px", marginBottom: "15px" }}
+          >
             <BasicSelect searchBy={searchBy} setSearchBy={setSearchBy} />
             <Grid item xs={6} sx={{ minWidth: 120 }}>
               {searchBy !== "" && (
@@ -87,6 +111,7 @@ export default function FormDialog() {
                     id="name"
                     value={formData}
                     label={searchBy}
+                    onChange={(event) => setFormData(event.target.value)}
                     type="text"
                     variant="outlined"
                   />
@@ -101,13 +126,17 @@ export default function FormDialog() {
               )}
             </Grid>
           </Grid>
-          {books.num!==0 && (<DataTable />)}
+          {bookList.length && (
+            <DataTable
+              setPage={setPage}
+              page={page}
+              setTriggercall={setTriggercall}
+              triggerCall={triggerCall}
+              handleClose={handleClose}
+            />
+          )}
         </DialogContent>
-        <DialogActions>
-          <Button variant={books.num===0?"disabled":"contained"} onClick={handleImport}>
-            Import All
-          </Button>
-        </DialogActions>
+        <DialogActions></DialogActions>
       </StyledDialog>
     </div>
   );

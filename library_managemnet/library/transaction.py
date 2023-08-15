@@ -14,12 +14,17 @@ from django.utils import timezone
 from datetime import datetime
 from django.db import transaction
 @api_view(['POST'])
-def creatTransaction(request,isbn,Id):
+def creatTransaction(request,isbn,memberID):
     try:
         # TODO make the debt validation
+        # print("new print running",isbn,memberID)
         book=Book.objects.get(isbn=isbn)
-        member=Member.objects.get(id=Id)
-        Prevtransactions = member.transaction_set.filter(end_date__isnull=True)
+        member=Member.objects.filter(memberID=memberID)
+        # print("membersss",member)
+        if(not member):
+             return JsonResponse({"message":"member ID does not exist","status":"fail"})
+        Prevtransactions = member[0].transaction_set.filter(end_date__isnull=True)
+        # print("prevtransaction",Prevtransactions)
         totalDebt=0
         date_format = "%Y-%m-%d"
         for singleTransaction in Prevtransactions:
@@ -34,10 +39,10 @@ def creatTransaction(request,isbn,Id):
             return JsonResponse({"message":"member has a debt exceeding 500","status":"fail"})
             # total_debt=total_debt+
         ##############check condition for already registered or not###############
-        previousRegister=Transaction.objects.filter(book=book,member=member,end_date__isnull=True)
+        previousRegister=Transaction.objects.filter(book=book,member=member[0],end_date__isnull=True)
         if(len(previousRegister)):
             return JsonResponse({"message":"Book already issued","status":"fail"})
-        transactions=Transaction(book=book,member=member,price_per_day=book.price_per_day)
+        transactions=Transaction(book=book,member=member[0],price_per_day=book.price_per_day)
         book.stock=book.stock-1
         with transaction.atomic():
             book.save()
@@ -73,7 +78,7 @@ def returnBook(request,transactionID):
         date2 = datetime.strptime(str(transactions.end_date), date_format)
         delta = date2 - date1
         total_days = delta.days
-        transactions.total_amount=total_days*transactions.price_per_day
+        transactions.total_amount=max(20, total_days*transactions.price_per_day)
         with transaction.atomic():
             transactions.save()
             Book.objects.filter(isbn=transactions.book.isbn).update(stock=F('stock')+1)
@@ -97,6 +102,7 @@ def getIssuedBooks(request):
         for transaction in pending_transactions:
             transaction_data.append({
                 'transaction_id': transaction.id,
+                'created_at':transaction.created_at,
                 'book': {
                     'title': transaction.book.title,
                     'authors': transaction.book.authors,
@@ -129,6 +135,9 @@ def getReturnedBooks(request):
         for transaction in pending_transactions:
             transaction_data.append({
                 'transaction_id': transaction.id,
+                'created_at':transaction.created_at,
+                'end_date':transaction.end_date,
+                'total_amount':transaction.total_amount,
                 'book': {
                     'title': transaction.book.title,
                     'authors': transaction.book.authors,

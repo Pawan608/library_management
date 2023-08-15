@@ -7,23 +7,48 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import AddIcon from "@mui/icons-material/Add";
 import { Container } from "@mui/material";
+import {
+  useCSRFstore,
+  useMemberStore,
+  useSnabarStore,
+} from "../../store/zustandstore";
+import { axiosPost } from "../../axios/axiosPost";
 
 export default function FormDialog() {
   const [formData, setFormData] = React.useState({
     fullname: "",
     email: "",
+    valid: false,
+    showError: false,
   });
   const [open, setOpen] = React.useState(false);
-
+  const { csfrValue } = useCSRFstore();
+  const { setError, setSuccess } = useSnabarStore();
+  const { setNewMember } = useMemberStore();
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     // Handle form submission logic here
     console.log("Form data submitted:", formData);
+    const response = await axiosPost(`library/member/create`, csfrValue, {
+      data: { name: formData.fullname, email: formData.email },
+    });
+    if (response.status == "success") {
+      setSuccess("Member successfully added");
+      setNewMember(response.data);
+      setFormData({
+        fullname: "",
+        email: "",
+        valid: false,
+        showError: false,
+      });
+    } else {
+      setError(response.message);
+    }
     // use handleClose to close dialog box
   };
 
@@ -60,7 +85,9 @@ export default function FormDialog() {
                 name="fullname"
                 value={formData.fullname}
                 onChange={handleChange}
+                error={formData.showError && !formData.fullname}
                 margin="normal"
+                required
               />
               <TextField
                 label="Email"
@@ -69,15 +96,18 @@ export default function FormDialog() {
                 type="email"
                 name="email"
                 value={formData.email}
+                error={formData.showError && !formData.email}
                 onChange={handleChange}
                 margin="normal"
+                required
               />
               <Button
                 type="submit"
                 variant="contained"
                 color="primary"
                 fullWidth
-                sx={{borderRadius: "25px"}}
+                sx={{ borderRadius: "25px" }}
+                // disabled={!formData.valid}
               >
                 Register
               </Button>

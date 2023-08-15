@@ -13,14 +13,16 @@ export default function Books() {
   const [searchBy, setSearchBy] = React.useState("");
   // stores form data for book search
   const [formData, setFormData] = React.useState("");
+  const [isTouched, setIsTouched] = React.useState(false);
   const handleChnage = (e) => {
     const { value } = e.target;
+    setIsTouched(true);
     setFormData(value);
   };
   const [bookList, setBookList] = React.useState([]);
   const getbooks = async () => {
     const url = `library/books/search/?${
-      formData ? `${searchBy}=${formData.split(" ").join("%20")}` : ""
+      formData ? `${searchBy}=${formData.trim().split(" ").join("%20")}` : ""
     }`;
     console.log("books url", url);
     const response = await axiosFetch(url);
@@ -34,12 +36,12 @@ export default function Books() {
   }, []);
   // function to handle search
   const handleSearch = () => {
-    console.log("handle serach called");
+    // console.log("handle serach called");
     getbooks();
     // call frappe API to get books * while calling API use searchBy value as "key" and formData value as "data" *
     // use "createData" function to populate rows array
   };
-  console.log(" all mbooks", bookList);
+  // console.log(" all mbooks", bookList);
   return (
     <div className="book">
       <div className="heading">
@@ -63,6 +65,12 @@ export default function Books() {
                 type="text"
                 variant="outlined"
                 onChange={handleChnage}
+                // error={isTouched && !searchBy}
+                helperText={
+                  isTouched && searchBy == ""
+                    ? "Please select the search by option from the dropdown"
+                    : ""
+                }
               />
             </FormControl>
           </Grid>
