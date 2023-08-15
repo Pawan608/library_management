@@ -54,7 +54,8 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Replace with your React app's domain
+    "http://localhost:3000",  
+    "https://library-management-6lmlfvlr1-pawan608.vercel.app"
 ]
 
 ROOT_URLCONF = 'library_managemnet.urls'
