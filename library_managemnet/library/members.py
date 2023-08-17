@@ -71,7 +71,6 @@ def getAllMembersAndTransactions(request):
                      date2 = datetime.strptime(str(transaction.end_date), date_format)
                      delta = date2 - date1
                      total_days = delta.days
-                     totalDebt=totalDebt+total_days*transaction.price_per_day
                 transaction_data.append({
                     'transaction_id': transaction.id,
                     'created_at': transaction.created_at,

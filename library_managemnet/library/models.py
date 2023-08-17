@@ -30,8 +30,8 @@ class Member(models.Model):
 class Transaction(models.Model):
     created_at = models.DateField(default=timezone.now)
     end_date = models.DateField(null=True)
-    member = models.ForeignKey(Member, on_delete=models.CASCADE)
-    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, on_delete=models.SET_NULL, null=True)
+    book = models.ForeignKey(Book, on_delete=models.SET_NULL, null=True)
     price_per_day = models.IntegerField(null=False)
     total_amount=models.IntegerField(null=True, blank=False)
 
