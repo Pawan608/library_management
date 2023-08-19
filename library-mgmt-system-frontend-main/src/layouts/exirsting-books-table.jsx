@@ -48,10 +48,10 @@ const ExistingBooksTable = () => {
     }
   };
   const columns = [
-    { field: "title", align: "left", headerName: "Title", width: 200 },
-    { field: "author", align: "left", headerName: "Author", width: 200 },
-    { field: "id", align: "left", headerName: "ISBN", width: 200 },
-    { field: "stock", align: "left", headerName: "Stock", width: 200 },
+    { field: "title", align: "left", headerName: "Title", width: 100 },
+    { field: "author", align: "left", headerName: "Author", width: 100 },
+    { field: "id", align: "left", headerName: "ISBN", width: 100 },
+    { field: "stock", align: "left", headerName: "Stock", width: 100 },
     {
       field: "rent",
       headerName: "Rent of Book",
